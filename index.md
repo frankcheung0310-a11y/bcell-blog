@@ -1,6 +1,6 @@
 ---
 layout: home
-title: B-Cell AI Research Hub
+title: B-Cell AI Research Hub.
 ---
 
 # B-Cell AI: Intelligence Behind the Immunity
