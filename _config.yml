@@ -1,6 +1,6 @@
-title: Minimal theme
-logo: /assets/img/logo.png
-description: Minimal is a theme for GitHub Pages.
-show_downloads: true
-google_analytics:
+title: B-Cell AI Research Hub
+description: Intelligence Behind the Immunity - Exploring Generative AI in B-cell Biology.
 theme: jekyll-theme-minimal
+
+
+show_downloads: false
