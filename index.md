@@ -1,3 +1,7 @@
+---
+layout: default
+title: B-Cell AI Hub
+---
 # B-Cell AI: Accelerating the Evolution of Medicine
 
 Welcome to the digital frontier of immunomics. Our focus is the intersection of artificial intelligence and B-cell engineering to redefine how the world discovers life-saving cures.
