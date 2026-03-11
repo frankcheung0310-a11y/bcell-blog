@@ -1,8 +1,8 @@
 title: B-Cell AI Research Hub
 description: Intelligence Behind the Immunity.
-# 强制使用在线主题，忽略本地碎片
 remote_theme: pages-themes/minimal@v0.2.0
 
 plugins:
   - jekyll-remote-theme
   - jekyll-feed
+  - jekyll-seo-tag
