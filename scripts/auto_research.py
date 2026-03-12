@@ -1,79 +1,60 @@
 import os
 import feedparser
-import google.generativeai as genai
+from google import genai  # 使用新版导入方式
 from datetime import datetime
 from pathlib import Path
 
-# 1. 配置 API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# 1. 配置 API (新版 SDK 自动识别模型路径)
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def fetch_papers():
-    rss_url = "https://connect.biorxiv.org/relate/feed/123" 
+    # 使用一个非常稳的 RSS 源
+    rss_url = "https://pubmed.ncbi.nlm.nih.gov/rss/search/18yG_7JbI78V6_9_W7z/?limit=5"
     feed = feedparser.parse(rss_url)
     return feed.entries[:1]
 
 def generate_post(paper):
-    # 重点：去掉 models/ 前缀，直接写名字，或者尝试 gemini-pro
-    # 有些旧版本的库对 1.5-flash 的路径识别有误
+    prompt = f"""
+    Write a Jekyll blog post about this B-cell research:
+    Title: {paper.title}
+    Abstract: {paper.summary}
+    
+    Format: Include Jekyll Front Matter (layout: post, title).
+    """
+    
     try:
-        # 方案 A: 尝试最标准的名字
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        prompt = f"""
----
-layout: post
-title: "AI Analysis: {paper.title}"
-date: {datetime.now().strftime('%Y-%m-%d')}
----
-Summarize this paper for biologists: {paper.title}. Abstract: {paper.summary}
-"""
-        response = model.generate_content(prompt)
+        # 新版 SDK 的调用方式，直接写模型名，不再有 v1beta 的烦恼
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
         return response.text
     except Exception as e:
-        print(f"尝试 1.5-flash 失败: {e}")
-        try:
-            # 方案 B: 如果 1.5 报错，自动切换到更稳定的 gemini-pro
-            print("正在尝试切换到 gemini-pro...")
-            model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content(prompt)
-            return response.text
-        except Exception as e2:
-            print(f"所有模型均调用失败: {e2}")
-            return None
+        print(f"🚀 新版 SDK 报错详情: {e}")
+        return None
 
 # 执行主程序
 papers = fetch_papers()
 if papers:
     paper = papers[0]
-    print(f"✅ Found: {paper.title}")
+    print(f"✅ Found paper: {paper.title}")
     
-    post_content = generate_post(paper)
+    content = generate_post(paper)
     
-    if post_content:
-        # --- 这里的逻辑最关键：使用 GitHub 环境变量定位根目录 ---
-        # GITHUB_WORKSPACE 是 GitHub 官方提供的根目录绝对路径
-        repo_root = os.getenv('GITHUB_WORKSPACE', os.getcwd())
-        posts_dir = os.path.join(repo_root, "_posts")
+    if content:
+        # 强制定位到 _posts 文件夹
+        repo_root = Path(os.getenv('GITHUB_WORKSPACE', os.getcwd()))
+        posts_dir = repo_root / "_posts"
+        posts_dir.mkdir(exist_ok=True)
         
-        # 确保文件夹存在
-        if not os.path.exists(posts_dir):
-            os.makedirs(posts_dir)
-            print(f"📁 Created folder: {posts_dir}")
+        filename = f"{datetime.now().strftime('%Y-%m-%d')}-bcell-update.md"
+        file_path = posts_dir / filename
         
-        # 生成文件名
-        date_str = datetime.now().strftime('%Y-%m-%d')
-        # 只保留字母数字，防止文件名非法导致保存失败
-        safe_title = "".join([c for c in paper.title[:30] if c.isalnum() or c==' ']).strip().replace(' ', '-')
-        file_path = os.path.join(posts_dir, f"{date_str}-{safe_title}.md")
-        
-        # 写入文件
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(post_content)
+            f.write(content)
         
-        print(f"🚀 Success! File saved at: {file_path}")
-        # 列出 _posts 目录内容，用于在日志里验证文件是否真的存在
-        print(f"Contents of _posts: {os.listdir(posts_dir)}")
+        print(f"🔥 文件已成功存入: {file_path}")
     else:
-        print("❌ AI failed to generate content.")
+        print("❌ AI 生成内容为空")
 else:
-    print("❌ No papers found.")
+    print("❌ 未抓取到文章")
