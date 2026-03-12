@@ -22,7 +22,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-generativeai feedparser
+          pip install google-genai feedparser  # 注意这里换成了 google-genai
 
       - name: Run research script
         env:
