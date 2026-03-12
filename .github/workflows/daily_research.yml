@@ -15,11 +15,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11' # 升级到 3.11 解决警告问题
 
       - name: Install dependencies
         run: |
-          pip install google-generativeai feedparser
+          pip install google-genai feedparser # 安装新的 google-genai 库
 
       - name: Run research script
         env:
