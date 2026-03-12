@@ -13,9 +13,13 @@ def fetch_papers():
     return feed.entries[:1]
 
 def generate_post(paper):
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    # 增加 Jekyll Front Matter 确保博客能识别
-    prompt = f"""
+    # 重点：去掉 models/ 前缀，直接写名字，或者尝试 gemini-pro
+    # 有些旧版本的库对 1.5-flash 的路径识别有误
+    try:
+        # 方案 A: 尝试最标准的名字
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = f"""
 ---
 layout: post
 title: "{paper.title}"
