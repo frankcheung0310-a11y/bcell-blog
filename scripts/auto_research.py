@@ -8,7 +8,7 @@ from pathlib import Path
 # --- 配置区 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
 # 直接使用官方 V1 接口，绕过 SDK 默认的 v1beta 路径
-API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
 
 def fetch_multi_source():
     """从多个生物医学源抓取包含 B-cell 和 AI 筛选的文章"""
