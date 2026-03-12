@@ -1,19 +1,16 @@
 import os
 import feedparser
-import google.generativeai as genai
+from google import genai
 from datetime import datetime
 
-# 1. 配置 Gemini
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 1. 配置新的 Gemini SDK
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-# 2. 定义抓取函数 (以 bioRxiv 的免疫学/生物信息学分类为例)
+# 2. 定义抓取函数
 def fetch_papers():
-    # 这里的 URL 是 bioRxiv 的 RSS 订阅地址
     rss_url = "https://connect.biorxiv.org/relate/feed/123" 
     feed = feedparser.parse(rss_url)
-    return feed.entries[:1] # 每天只取最新的一篇，保证质量
+    return feed.entries[:1]
 
 # 3. 让 AI 生成内容
 def generate_post(paper):
@@ -33,7 +30,11 @@ def generate_post(paper):
     
     Output must start with --- layout: post --- and include 'author: BCellAI-Bot'.
     """
-    response = model.generate_content(prompt)
+    # 使用最新的 generate 方法
+    response = client.models.generate_content(
+        model="gemini-2.0-flash", 
+        contents=prompt
+    )
     return response.text
 
 # 4. 执行流程
@@ -42,10 +43,12 @@ if papers:
     paper = papers[0]
     post_content = generate_post(paper)
     
-    # 生成合规的文件名
     date_str = datetime.now().strftime('%Y-%m-%d')
     safe_title = "".join([c for c in paper.title[:30] if c.isalnum() or c==' ']).replace(' ', '-')
     file_path = f"_posts/{date_str}-{safe_title}.md"
+    
+    # 确保文件夹存在（防止路径错误）
+    os.makedirs("_posts", exist_ok=True)
     
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(post_content)
