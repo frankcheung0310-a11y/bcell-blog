@@ -111,12 +111,18 @@ Research indicates ongoing progress in B-cell screening and AI model integration
 
 # 写入文件
 repo_root = Path(os.getenv('GITHUB_WORKSPACE', os.getcwd()))
-posts_dir = repo_root / "_posts"
+# --- 写入文件（简化路径确保 Git 能抓到） ---
+posts_dir = Path("_posts")
 posts_dir.mkdir(exist_ok=True)
+
+# 使用固定的日期格式文件名
 filename = f"{datetime.now().strftime('%Y-%m-%d')}-bcell-ai-report.md"
 file_path = posts_dir / filename
 
 with open(file_path, "w", encoding="utf-8") as f:
     f.write(final_content)
 
-print(f"🔥 大功告成！报告已生成: {file_path}")
+print(f"🔥 大功告成！报告已生成在: {file_path.absolute()}")
+# 打印当前目录内容，方便我们调试
+import os
+print(f"📁 当前 _posts 目录内容: {os.listdir('_posts')}")
