@@ -32,12 +32,17 @@ jobs:
         run: |
           git config --global user.name "BCellAI-Bot"
           git config --global user.email "bot@bcellai.com"
-          # 关键修改：强制添加 _posts 目录下的所有 md 文件
-          git add _posts/*.md
-          # 检查是否有文件真的被添加了
+          
+          # 强制 Git 追踪 _posts 文件夹
+          git add -f _posts/*.md
+          
+          # 检查状态并输出，方便查看
+          git status
+          
+          # 只要有变化就提交
           if git diff --cached --quiet; then
-            echo "No changes detected in _posts directory."
+            echo "No changes to commit (File might already exist with same content)"
           else
-            git commit -m "Auto-update: B-Cell AI Research Report $(date +'%Y-%m-%d')"
+            git commit -m "Auto-update: B-Cell Research Roundup $(date +'%Y-%m-%d')"
             git push origin master
           fi
