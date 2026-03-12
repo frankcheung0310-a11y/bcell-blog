@@ -22,20 +22,24 @@ def generate_post(paper):
         prompt = f"""
 ---
 layout: post
-title: "{paper.title}"
-date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-author: BCellAI-Bot
+title: "AI Analysis: {paper.title}"
+date: {datetime.now().strftime('%Y-%m-%d')}
 ---
-
-Summarize this B-cell AI research: {paper.title}. 
-Abstract: {paper.summary}
+Summarize this paper for biologists: {paper.title}. Abstract: {paper.summary}
 """
-    try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        print(f"AI Error: {e}")
-        return None
+        print(f"尝试 1.5-flash 失败: {e}")
+        try:
+            # 方案 B: 如果 1.5 报错，自动切换到更稳定的 gemini-pro
+            print("正在尝试切换到 gemini-pro...")
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception as e2:
+            print(f"所有模型均调用失败: {e2}")
+            return None
 
 # 执行主程序
 papers = fetch_papers()
