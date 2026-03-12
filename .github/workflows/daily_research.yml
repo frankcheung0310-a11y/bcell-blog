@@ -1,60 +1,42 @@
-import os
-import feedparser
-import google.generativeai as genai
-from datetime import datetime
-from pathlib import Path
+name: Daily B-Cell AI Research Update
 
-# 1. 配置 API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
-def fetch_papers():
-    # 抓取生物医学论文
-    rss_url = "https://connect.biorxiv.org/relate/feed/123" 
-    feed = feedparser.parse(rss_url)
-    return feed.entries[:1]
+permissions:
+  contents: write
 
-def generate_post(paper):
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    # 加上 Jekyll 需要的头部信息
-    prompt = f"""
-    Create a Jekyll blog post for this research: {paper.title}. 
-    Abstract: {paper.summary}
-    Please include 'layout: post' and 'title' in the front matter.
-    """
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        print(f"AI Error: {e}")
-        return None
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-# 执行主程序
-papers = fetch_papers()
-if papers:
-    paper = papers[0]
-    print(f"✅ Found Paper: {paper.title}")
-    
-    post_content = generate_post(paper)
-    
-    if post_content:
-        # --- 这里的逻辑是关键：定位仓库根目录 ---
-        # 无论脚本在哪里运行，这段代码都会找到项目的最外层文件夹
-        script_path = Path(__file__).resolve()
-        repo_root = script_path.parent.parent  # 从 scripts/ 回到 根目录
-        posts_dir = repo_root / "_posts"
-        
-        # 确保 _posts 文件夹存在
-        posts_dir.mkdir(exist_ok=True)
-        
-        # 生成文件名
-        date_str = datetime.now().strftime('%Y-%m-%d')
-        safe_title = "".join([c for c in paper.title[:30] if c.isalnum() or c==' ']).strip().replace(' ', '-')
-        file_path = posts_dir / f"{date_str}-{safe_title}.md"
-        
-        # 写入文件
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(post_content)
-        
-        print(f"🚀 Success! File really saved at: {file_path}")
-        # 打印一下根目录内容，确保我们能看到它
-        print(f"Current root files: {os.listdir(repo_root)}")
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-generativeai feedparser
+
+      - name: Run research script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/auto_research.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "BCellAI-Bot"
+          git config --global user.email "bot@bcellai.com"
+          git add _posts/*.md
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Auto-update: New research summary $(date +'%Y-%m-%d')"
+            git push origin master
+          else
+            echo "No changes to commit"
+          fi
