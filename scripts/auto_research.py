@@ -32,7 +32,7 @@ def generate_post(paper):
     """
     # 使用最新的 generate 方法
     response = client.models.generate_content(
-        model="models/gemini-1.5-flash",, 
+        model="models/gemini-1.5-flash",
         contents=prompt
     )
     return response.text
