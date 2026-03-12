@@ -1,1 +1,35 @@
+name: Daily B-Cell AI Research Update
 
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天 UTC 时间 0:00 (北京时间早8点) 自动运行
+  workflow_dispatch: # 允许你手动点击按钮运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install google-generativeai feedparser
+
+      - name: Run research script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/auto_research.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "BCellAI-Bot"
+          git config --global user.email "bot@bcellai.com"
+          git add _posts/*.md
+          git commit -m "Auto-update: New research summary added" || exit 0
+          git push
