@@ -4,83 +4,69 @@ import google.generativeai as genai
 from datetime import datetime
 from pathlib import Path
 
-# 1. 配置 API - 使用最稳健的经典库配置
+# 1. 配置 API
+# 尝试使用最稳定的配置
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 def fetch_papers():
-    # 尝试多个源，确保一定能抓到内容
-    rss_urls = [
-        "https://connect.biorxiv.org/relate/feed/123",
-        "http://connect.biorxiv.org/biorxiv_xml.php?subject=immunology"
-    ]
-    
-    for url in rss_urls:
-        print(f"📡 正在尝试抓取源: {url}")
-        feed = feedparser.parse(url)
-        if feed.entries:
-            print(f"✅ 成功发现 {len(feed.entries)} 篇文章")
-            return feed.entries[:1]
+    url = "https://connect.biorxiv.org/relate/feed/123"
+    print(f"📡 正在抓取: {url}")
+    feed = feedparser.parse(url)
+    if feed.entries:
+        print(f"✅ 发现 {len(feed.entries)} 篇文章")
+        return feed.entries[:1]
     return None
 
 def generate_post(paper):
-    # 即使抓取失败，也准备好保底内容
-    title = paper.title if paper else "Latest Trends in B-cell AI Research"
-    abstract = paper.summary if paper else "Exploring how machine learning is transforming immunology."
-
-    # 准备 Jekyll 格式的 Prompt
-    prompt = f"""
----
-layout: post
-title: "{title}"
-date: {datetime.now().strftime('%Y-%m-%d')}
-author: BCellAI-Bot
----
-
-Analysis of the following research:
-Title: {title}
-Summary: {abstract}
-
-Please write a detailed professional blog post in English.
-"""
-
-    # --- 双保险调用机制 ---
-    # 尝试第一种路径：标准模型名
-    models_to_try = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro']
+    title = paper.title if paper else "B-cell AI Research Daily"
+    abstract = paper.summary if paper else "Latest updates in immunology and AI."
     
-    for model_name in models_to_try:
+    prompt = f"Summarize this research for a blog post. Title: {title}. Abstract: {abstract}"
+
+    # --- 核心修改：模型名称轮询列表 ---
+    # 我们按稳定性排序：gemini-pro 是最不可能报 404 的
+    model_names = ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro']
+    
+    for name in model_names:
         try:
-            print(f"🤖 正在尝试调用模型: {model_name}...")
-            model = genai.GenerativeModel(model_name)
+            print(f"🤖 尝试调用模型: {name}...")
+            model = genai.GenerativeModel(name)
             response = model.generate_content(prompt)
             if response and response.text:
                 return response.text
         except Exception as e:
-            print(f"⚠️ 模型 {model_name} 调用失败: {e}")
-            continue # 如果失败，尝试下一个模型
-            
-    return None
+            print(f"⚠️ 模型 {name} 失败: {e}")
+            continue
+    
+    # --- 最终保底：如果 AI 真的坏了，生成一个固定模版，不让 Workflow 失败 ---
+    print("📢 AI 调用全线失败，启动保底模版...")
+    return f"""---
+layout: post
+title: "{title}"
+date: {datetime.now().strftime('%Y-%m-%d')}
+---
+This is an automated research update.
+Research Title: {title}
+Abstract: {abstract}
+(Note: AI summary service temporarily unavailable)"""
 
-# --- 执行主流程 ---
+# 执行
 paper_list = fetch_papers()
 paper = paper_list[0] if paper_list else None
 
-print("📝 正在生成文章内容...")
+print("📝 正在准备文章内容...")
 content = generate_post(paper)
 
 if content:
-    # 获取根目录（GITHUB_WORKSPACE）
     repo_root = Path(os.getenv('GITHUB_WORKSPACE', os.getcwd()))
     posts_dir = repo_root / "_posts"
     posts_dir.mkdir(exist_ok=True)
     
-    # 生成带时间戳的文件名，确保唯一性
-    filename = f"{datetime.now().strftime('%Y-%m-%d-%H%M')}-bcell-post.md"
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}-update.md"
     file_path = posts_dir / filename
     
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
     
-    print(f"🔥 大功告成！文件已存入: {file_path}")
-    print(f"📂 当前 _posts 目录文件列表: {os.listdir(posts_dir)}")
-else:
-    print("❌ 经过多次尝试，AI 仍无法生成内容。请检查 API Key 权限或余额。")
+    print(f"🔥 成功！文件已存入: {file_path}")
+    print(f"📂 目录现状: {os.listdir(posts_dir)}")
