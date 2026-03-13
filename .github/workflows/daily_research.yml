@@ -1,11 +1,10 @@
-name: Daily B-Cell AI Research Update
+name: 3-Day B-Cell AI Research Update
 
 on:
   schedule:
-    # 这里的 '0 21 */3 * *' 表示：
-    # 每隔 3 天的 UTC 21:00（东京时间次日凌晨 06:00）运行一次
+    # 每 3 天的 UTC 21:00 运行一次 (东京时间凌晨 6:00)
     - cron: '0 21 */3 * *'
-  workflow_dispatch: # 保留手动触发按钮
+  workflow_dispatch: # 保留手动触发按钮，方便你测试
 
 permissions:
   contents: write
@@ -17,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 拉取完整历史，防止 Push 失败
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,11 +24,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install feedparser requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install feedparser requests beautifulsoup4
 
       - name: Run research script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        # 确保你的 Python 文件路径是 scripts/auto_research.py
         run: python scripts/auto_research.py
 
       - name: Commit and Push changes
@@ -38,14 +40,12 @@ jobs:
           git config --global user.email "bot@bcellai.com"
           
           # 检查文件是否生成
-          ls -R _posts/
+          ls -R _posts/ || echo "No _posts directory yet"
           
-          # 暴力添加所有变化
-          git add _posts/*.md
+          git add _posts/*.md || echo "No new posts to add"
           
-          # 只要有变化就提交
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Auto-update: B-Cell Research $(date +'%Y-%m-%d')"
+            git commit -m "Auto-update: B-Cell 3-Day Research $(date +'%Y-%m-%d')"
             git push origin master
           else
             echo "No changes detected to commit."
