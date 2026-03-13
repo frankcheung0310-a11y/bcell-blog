@@ -1,9 +1,11 @@
 name: Daily B-Cell AI Research Update
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    # 这里的 '0 21 */3 * *' 表示：
+    # 每隔 3 天的 UTC 21:00（东京时间次日凌晨 06:00）运行一次
+    - cron: '0 21 */3 * *'
+  workflow_dispatch: # 保留手动触发按钮
 
 permissions:
   contents: write
