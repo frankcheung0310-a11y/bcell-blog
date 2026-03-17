@@ -4,7 +4,7 @@ on:
   schedule:
     # 每 3 天的 UTC 21:00 运行一次 (东京时间凌晨 6:00)
     - cron: '0 21 */3 * *'
-  workflow_dispatch: # 保留手动触发按钮，方便你测试
+  workflow_dispatch: # 保留手动触发按钮
 
 permissions:
   contents: write
@@ -31,7 +31,7 @@ jobs:
       - name: Run research script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        # 确保你的 Python 文件路径是 scripts/auto_research.py
+        # 确保你的 Python 文件路径正确
         run: python scripts/auto_research.py
 
       - name: Commit and Push changes
@@ -39,14 +39,15 @@ jobs:
           git config --global user.name "BCellAI-Bot"
           git config --global user.email "bot@bcellai.com"
           
-          # 检查文件是否生成
-          ls -R _posts/ || echo "No _posts directory yet"
+          # 核心修改：同时追踪新博文和历史记录文件
+          # 使用 -f 强制添加，以防 .gitignore 误伤了 .txt 文件
+          git add _posts/*.md published_history.txt || echo "No changes to add"
           
-          git add _posts/*.md || echo "No new posts to add"
-          
+          # 检查是否有文件发生了变化
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Auto-update: B-Cell 3-Day Research $(date +'%Y-%m-%d')"
+            git commit -m "Auto-update: B-Cell Research & History $(date +'%Y-%m-%d')"
+            # 这里的 master 确保和你仓库的主分支名字一致（如果你的主分支叫 main，请改为 main）
             git push origin master
           else
-            echo "No changes detected to commit."
+            echo "No changes detected (neither posts nor history). Skipping commit."
           fi
