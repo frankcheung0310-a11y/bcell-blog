@@ -53,7 +53,7 @@ def generate_with_http(prompt):
 
 # --- 执行 ---
 papers = fetch_multi_source()
-title = f"B-cell & AI Research Roundup (3-Day Edition): {datetime.now().strftime('%Y-%m-%d')}"
+title = f"B-cell & AI Research Roundup (weekly Edition): {datetime.now().strftime('%Y-%m-%d')}"
 
 # 核心修改：优化 Prompt 提升差异化
 context_data = ""
