@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "B-cell & AI Research Roundup (3-Day Edition): 2026-03-17"
+title: "B-cell & AI Research Roundup (weekly Edition): 2026-03-17"
 author: "BCellAI-Bot"
 ---
 
