@@ -63,9 +63,14 @@ def generate_with_http(prompt):
     try:
         response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
         res_json = response.json()
+        
+        # --- 增加这一行打印，看看 Google 到底回了什么 ---
+        print(f"DEBUG: API Response: {res_json}") 
+        
         if "candidates" in res_json:
             return res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-    except:
+    except Exception as e:
+        print(f"DEBUG: Error: {e}")
         return None
     return None
 
