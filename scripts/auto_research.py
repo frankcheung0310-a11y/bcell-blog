@@ -61,10 +61,10 @@ if papers:
     for i, p in enumerate(papers):
         context_data += f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary}\n\n"
 else:
-    context_data = "No new major papers in the last 3 days."
+    context_data = "No new major papers in the last 7 days."
 
 full_prompt = f"""
-请根据以下 B 细胞领域最近 3 天的研究内容，生成一篇 Jekyll 博客文章。
+请根据以下 B 细胞领域最近 7 天的研究内容，生成一篇 Jekyll 博客文章。
 要求：
 1. 使用 Markdown 格式。
 2. 包含 YAML Front Matter（title, layout: post, author）。
