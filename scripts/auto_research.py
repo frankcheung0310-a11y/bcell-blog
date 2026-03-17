@@ -20,7 +20,7 @@ def fetch_multi_source():
     keywords = ["b cell", "b-cell", "antibody", "vaccine", "antigen", "bcr"]
     
     # 核心修改：定义 3 天的时间阈值
-    three_days_ago = datetime.now() - timedelta(days=3)
+    seven_days_ago = datetime.now() - timedelta(days=7)
     
     for url in sources:
         try:
@@ -33,7 +33,7 @@ def fetch_multi_source():
                 
                 # 过滤条件：包含关键词 且 发布于 3 天内
                 if any(kw in (entry.title + entry.summary).lower() for kw in keywords):
-                    if published_time is None or published_time > three_days_ago:
+                    if published_time is None or published_time > seven_days_ago:
                         found_papers.append(entry)
                 
                 if len(found_papers) >= 5: break # 稍微多拿几篇，给 AI 更多选择空间
