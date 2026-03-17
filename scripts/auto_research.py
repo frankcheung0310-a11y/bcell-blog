@@ -2,60 +2,43 @@ import os
 import feedparser
 import requests
 import json
-import time
-from datetime import datetime, timedelta
+import time # 导入时间模块
+from datetime import datetime, timedelta # 导入 timedelta 处理三天跨度
 from pathlib import Path
-import hashlib
 
 # --- 配置 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/openai/chat/completions?key={API_KEY}"
-HISTORY_FILE = "published_history.txt"  # 用于记录已发布的文章摘要，防止重复
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
 
 def fetch_multi_source():
-    # 加入了 arXiv 的生物分子频道
     sources = [
         "https://connect.biorxiv.org/relate/feed/123",
-        "https://pubmed.ncbi.nlm.nih.gov/rss/search/1y0yS_XvO2fQfX4p-B-cell-AI/?limit=5",
-        "https://arxiv.org/rss/q-bio.BM" 
+        "https://pubmed.ncbi.nlm.nih.gov/rss/search/1y0yS_XvO2fQfX4p-B-cell-AI/?limit=5"
+        "https://arxiv.org/rss/q-bio.BM"
     ]
     found_papers = []
-    # 扩展了关键词，涵盖 AI 辅助设计
-    keywords = ["b cell", "b-cell", "antibody", "vaccine", "antigen", "bcr", "protein design", "epitope"]
+    keywords = ["b cell", "b-cell", "antibody", "vaccine", "antigen", "bcr"]
     
+    # 核心修改：定义 3 天的时间阈值
     three_days_ago = datetime.now() - timedelta(days=3)
     
-    # 读取历史记录
-    history = []
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-            history = f.read().splitlines()
-
     for url in sources:
         try:
             feed = feedparser.parse(url)
             for entry in feed.entries:
-                # 1. 时间过滤
+                # 解析发布时间（如果解析失败则跳过时间过滤）
                 published_time = None
                 if hasattr(entry, 'published_parsed'):
                     published_time = datetime.fromtimestamp(time.mktime(entry.published_parsed))
                 
-                if published_time and published_time < three_days_ago:
-                    continue
-
-                # 2. 关键词过滤
-                content_to_check = (entry.title + entry.summary).lower()
-                if any(kw in content_to_check for kw in keywords):
-                    # 3. 重复性过滤 (通过标题的 MD5 哈希值)
-                    entry_hash = hashlib.md5(entry.title.encode('utf-8')).hexdigest()
-                    if entry_hash not in history:
-                        found_papers.append({'entry': entry, 'hash': entry_hash})
+                # 过滤条件：包含关键词 且 发布于 3 天内
+                if any(kw in (entry.title + entry.summary).lower() for kw in keywords):
+                    if published_time is None or published_time > three_days_ago:
+                        found_papers.append(entry)
                 
-                if len(found_papers) >= 5: break
-        except:
-            continue
-    
-    return found_papers
+                if len(found_papers) >= 5: break # 稍微多拿几篇，给 AI 更多选择空间
+        except: continue
+    return found_papers[:3]
 
 def generate_with_http(prompt):
     headers = {'Content-Type': 'application/json'}
@@ -63,66 +46,51 @@ def generate_with_http(prompt):
     try:
         response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
         res_json = response.json()
-        
-        # --- 增加这一行打印，看看 Google 到底回了什么 ---
-        print(f"DEBUG: API Response: {res_json}") 
-        
         if "candidates" in res_json:
             return res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-    except Exception as e:
-        print(f"DEBUG: Error: {e}")
-        return None
+    except: return None
     return None
 
 # --- 执行 ---
-new_papers_data = fetch_multi_source()
+papers = fetch_multi_source()
+title = f"B-cell & AI Research Roundup (3-Day Edition): {datetime.now().strftime('%Y-%m-%d')}"
 
-# 核心逻辑：如果没有新文章，直接退出程序
-if not new_papers_data:
-    print("📢 经过比对，近 3 天内没有发现新的相关科研文章。跳过本次更新。")
-    exit()
-
-# 提取文章对象用于后续处理
-papers = [item['entry'] for item in new_papers_data]
-new_hashes = [item['hash'] for item in new_papers_data]
-
-print(f"🚀 发现 {len(papers)} 篇新文章，正在准备生成深度报告...")
-
+# 核心修改：优化 Prompt 提升差异化
 context_data = ""
-for i, p in enumerate(papers):
-    context_data += f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary}\n\n"
+if papers:
+    for i, p in enumerate(papers):
+        context_data += f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary}\n\n"
+else:
+    context_data = "No new major papers in the last 3 days."
 
 full_prompt = f"""
-请根据以下 B 细胞与抗体 AI 领域最近的新研究内容，生成一篇 Jekyll 博客文章。
+请根据以下 B 细胞领域最近 3 天的研究内容，生成一篇 Jekyll 博客文章。
 要求：
 1. 使用 Markdown 格式。
-2. 包含 YAML Front Matter（title, layout: post, author, tags）。
-3. 语言风格：专业、硬核但易于理解。
-4. 重点分析：这些研究如何利用 AI 技术（如机器学习、结构预测）加速 B 细胞研究或疫苗设计。
-5. 自动生成 3 个相关的英文标签。
+2. 包含 YAML Front Matter（title, layout: post, author）。
+3. 不要只是翻译摘要。请分析这些研究之间的内在联系，或者它们对 AI 辅助药物研发的意义。
+4. 如果内容较少，请深入探讨该领域的一个前沿趋势。
+5. 自动为文章生成 3 个相关的英文标签（tags）。
 
 研究内容：
 {context_data}
 """
 
+print("📝 正在生成深度报告...")
 final_content = generate_with_http(full_prompt)
 
-if final_content:
-    workspace = os.getenv('GITHUB_WORKSPACE', os.getcwd())
-    posts_dir = Path(workspace) / "_posts"
-    posts_dir.mkdir(exist_ok=True)
+# 如果 AI 生成失败，至少保留一个带标题的骨架
+if not final_content:
+    final_content = f"---\nlayout: post\ntitle: \"{title}\"\nauthor: \"BCellAI-Bot\"\n---\n\n{context_data}"
 
-    filename = f"{datetime.now().strftime('%Y-%m-%d')}-bcell-report.md"
-    file_path = posts_dir / filename
+workspace = os.getenv('GITHUB_WORKSPACE', os.getcwd())
+posts_dir = Path(workspace) / "_posts"
+posts_dir.mkdir(exist_ok=True)
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(final_content)
+filename = f"{datetime.now().strftime('%Y-%m-%d')}-bcell-report.md"
+file_path = posts_dir / filename
 
-    # 更新历史记录文件，防止下次重复
-    with open(HISTORY_FILE, "a", encoding="utf-8") as f:
-        for h in new_hashes:
-            f.write(h + "\n")
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(final_content)
 
-    print(f"✅ 深度报告已生成并写入: {file_path}")
-else:
-    print("❌ AI 生成内容失败。")
+print(f"✅ 文件已写入: {file_path}")
