@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,13 +32,12 @@ jobs:
         run: |
           git config --global user.name "BCellAI-Bot"
           git config --global user.email "bot@bcellai.com"
-          # 同时保存博文和历史记忆文件
-          git add _posts/*.md published_history.txt || echo "No changes"
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Auto-update $(date +'%Y-%m-%d')"
-            git push origin master
-          else
-            echo "Nothing to commit"
-          fi
-            echo "No changes detected (neither posts nor history). Skipping commit."
-          fi
+          
+          # 创建一个空的记忆文件防止报错
+          touch published_history.txt
+          
+          git add _posts/*.md published_history.txt
+          
+          # 简单的提交逻辑，不搞复杂的 if else
+          git commit -m "Auto-update $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git push origin master || echo "Nothing to push"
