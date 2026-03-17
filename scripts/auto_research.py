@@ -9,7 +9,7 @@ import hashlib
 
 # --- 配置 ---
 API_KEY = os.getenv("GEMINI_API_KEY")
-API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
 HISTORY_FILE = "published_history.txt"  # 用于记录已发布的文章摘要，防止重复
 
 def fetch_multi_source():
