@@ -13,8 +13,8 @@ API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-f
 def fetch_multi_source():
     sources = [
         "https://connect.biorxiv.org/relate/feed/123",
-        "https://pubmed.ncbi.nlm.nih.gov/rss/search/1y0yS_XvO2fQfX4p-B-cell-AI/?limit=5"
-        "https://arxiv.org/rss/q-bio.BM"
+        "https://pubmed.ncbi.nlm.nih.gov/rss/search/1y0yS_XvO2fQfX4p-B-cell-AI/?limit=5",
+        "https://arxiv.org/rss/q-bio.BM",
     ]
     found_papers = []
     keywords = ["b cell", "b-cell", "antibody", "vaccine", "antigen", "bcr"]
