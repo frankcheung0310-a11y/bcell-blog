@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 API_KEY = os.getenv("GEMINI_API_KEY")
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={API_KEY}"
+API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
 
 # ✅ 修复一：去重记忆文件
 SEEN_FILE = Path(os.getenv('GITHUB_WORKSPACE', os.getcwd())) / "seen_papers.json"
