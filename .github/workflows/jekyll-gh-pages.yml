@@ -1,4 +1,4 @@
-name: Build and Deploy to Master
+name: Zero-Dependency-Build
 on:
   push:
     branches: ["master"]
@@ -14,16 +14,16 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
-          bundler-cache: true
-      - name: Build with Jekyll
+      - name: Install and Build
         run: |
-          bundle exec jekyll build
-          # 把生成的隐藏成品 _site 变成 CF 能看见的 dist
+          gem install jekyll jekyll-theme-minimal
+          jekyll build
+          # 这一步非常关键：把生成的 _site 变出来给 CF 看
           cp -r _site dist
-      - name: Force Push Dist to Master
+      - name: Push to Repository
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add -f dist/
-          git commit -m "Deploy site to dist folder" || exit 0
+          git commit -m "Force deploy to dist" || exit 0
           git push origin master
