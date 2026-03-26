@@ -1,39 +1,20 @@
-name: Weekly-Paper-Hunter
-
+name: Weekly-Research-Hunter
 on:
   schedule:
-    - cron: '0 0 * * 1' # 每周一凌晨 00:00 运行
-  workflow_dispatch:    # 允许你随时手动点击运行
-
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
 permissions:
   contents: write
-
 jobs:
   hunt:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Python Setup
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Libs
-        run: pip install feedparser requests beautifulsoup4
-
-      - name: Run Scraper
-        run: python scripts/auto_research.py
-
-      - name: Save Results
-        run: |
-          git config --global user.name "BCell-Hunter"
-          git config --global user.email "bot@bcell.ai"
-          git add raw_papers/*.txt seen_papers.json 2>/dev/null || true
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Weekly Intelligence: $(date +'%Y-%m-%d')"
-            git push origin master
-          else
-            echo "No new papers found."
-          fi
+      - uses: actions/checkout@v4
+      - run: pip install feedparser
+      - run: python scripts/auto_research.py
+      - run: |
+          git config --global user.name "BCellBot"
+          git config --global user.email "bot@bcellai.com"
+          git add raw_papers/*.txt seen_papers.json
+          git commit -m "Weekly report data: $(date +'%Y-%m-%d')" || exit 0
+          git push origin master
