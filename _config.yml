@@ -1,8 +1,8 @@
-title: B-Cell AI Research Hub
-description: Intelligence Behind the Immunity.
-remote_theme: pages-themes/minimal@v0.2.0
-
-plugins:
-  - jekyll-remote-theme
-  - jekyll-feed
-  - jekyll-seo-tag
+title: B-Cell AI Blog
+description: Intelligence for B-Cell Research
+baseurl: "" 
+url: "https://bcell.ai"
+encoding: "utf-8"
+future: true
+markdown: kramdown
+theme: jekyll-theme-minimal
