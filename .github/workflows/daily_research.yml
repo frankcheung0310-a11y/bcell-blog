@@ -1,8 +1,7 @@
-name: 7-Day B-Cell AI Research Update
+name: B-Cell Paper Crawler
 
 on:
   schedule:
-    # ✅ 修复一：每7天运行一次，UTC 21:00（东京时间早上6:00）
     - cron: '0 21 1,8,15,22 * *'
   workflow_dispatch:
 
@@ -24,25 +23,19 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install feedparser requests beautifulsoup4
+        run: pip install feedparser
 
-      - name: Run research script
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Run crawler
         run: python scripts/auto_research.py
 
-      - name: Commit and Push changes
+      - name: Commit and Push
         run: |
           git config --global user.name "BCellAI-Bot"
           git config --global user.email "bot@bcellai.com"
-
-          # ✅ 修复二：同时提交posts和seen_papers.json
-          git add _posts/ seen_papers.json 2>/dev/null || true
-
+          git add raw_papers/ seen_papers.json 2>/dev/null || true
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Auto-update: B-Cell Research $(date +'%Y-%m-%d')"
+            git commit -m "Raw papers: $(date +'%Y-%m-%d')"
             git push origin master
           else
-            echo "No changes detected, skipping commit."
+            echo "没有新论文，跳过提交"
           fi
