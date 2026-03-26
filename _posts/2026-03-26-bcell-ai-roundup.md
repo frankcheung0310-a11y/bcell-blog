@@ -2,7 +2,7 @@
 layout: post
 title: "AI and B-Cell Research Roundup: March 2026"
 date: 2026-03-26
-tags: [AI, Immunology, Drug-Discovery]
+tags: AI, Immunology, Drug-Discovery
 author: z-john
 ---
 
