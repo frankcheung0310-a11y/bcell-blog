@@ -27,5 +27,5 @@ A significant study released today analyzed how cumulative exposure to COVID-19 
 
 ---
 
-### In Simple Terms:
+### In Simple Terms: 
 AI is transforming drug discovery from a game of "lucky guesses" into a field of "precision engineering." We aren't just making pretty pictures of cells anymore; we're building functional digital models that follow biological rules. Combined with our body's evolved ability to fight a broader range of viruses, AI is helping us turn past pandemic lessons into future "universal" cures.
