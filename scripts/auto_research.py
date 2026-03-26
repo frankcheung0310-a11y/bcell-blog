@@ -101,8 +101,8 @@ full_prompt = f"""
 1. 使用 Markdown 格式。
 2. 包含 YAML Front Matter（title, layout: post, author, date: {datetime.now().strftime('%Y-%m-%d')}）。
 3. 不要翻译摘要，分析研究之间的内在联系和对AI辅助药物研发的意义。
-4. 自动生成3个相关英文标签（tags）。
-5. 结尾加一句对普通读者友好的总结，用"简单来说"开头。
+用中文写一篇简短的B细胞AI研究摘要，300字以内，面向普通读者。
+不要用学术语言，结尾一句话说明对普通人的意义。
 研究内容：
 {context_data}
 """
