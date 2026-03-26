@@ -14,7 +14,7 @@ jobs:
       - run: python scripts/auto_research.py
       - run: |
           git config --global user.name "BCellBot"
-          git config --global user.email "bot@bcellai.com"
+          git config --global user.email "info@bcellai.com"
           git add raw_papers/*.txt seen_papers.json
           git commit -m "Weekly report data: $(date +'%Y-%m-%d')" || exit 0
           git push origin master
