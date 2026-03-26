@@ -72,10 +72,14 @@ def generate_with_http(prompt):
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     try:
         response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
+        # ✅ 打印返回内容，方便排查
+        print(f"API状态码: {response.status_code}")
+        print(f"API返回: {response.text[:500]}")
         res_json = response.json()
         if "candidates" in res_json:
             return res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-    except:
+    except Exception as e:
+        print(f"API调用异常: {e}")
         return None
     return None
 
