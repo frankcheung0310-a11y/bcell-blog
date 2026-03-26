@@ -18,8 +18,14 @@ jobs:
         run: |
           gem install jekyll jekyll-theme-minimal
           jekyll build
-          # 这一步非常关键：把生成的 _site 变出来给 CF 看
-          cp -r _site dist
+          # 1. 彻底清空旧的 dist
+          rm -rf dist
+          mkdir dist
+          # 2. 关键修正：将 _site 内部的所有文件（包含隐藏文件）拷贝到 dist 根目录
+          # 注意 _site 后面的 /. 这是把内容铺平的关键
+          cp -a _site/. dist/
+          # 3. 预防万一：删掉 dist 里重复出现的 _site 文件夹（如果之前残留了）
+          rm -rf dist/_site
       - name: Push to Repository
         run: |
           git config --global user.name "GitHub Action"
