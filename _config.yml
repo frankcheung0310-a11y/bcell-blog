@@ -1,7 +1,7 @@
 title: B-Cell AI Blog
 description: Intelligence for B-Cell Research
 baseurl: "" 
-url: "https://bcell.com"
+url: "https://bcellai.com"
 encoding: "utf-8"
 future: true
 markdown: kramdown
