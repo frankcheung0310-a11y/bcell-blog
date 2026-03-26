@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "AI & B-Cell Research Roundup: March 2026"
-date: 2026-03-26
+date: 2026-03-25
 tags: [AI, Immunology, Drug-Discovery]
 author: z-john
 ---
 
-# AI & B-Cell Research Roundup: March 26, 2026
+# AI & B-Cell Research Roundup: March 25, 2026
 
 This week’s research highlights a massive shift in biomedical AI: we are moving from "looking realistic" to "being biologically functional." Here are the three pillars of today's update:
 
