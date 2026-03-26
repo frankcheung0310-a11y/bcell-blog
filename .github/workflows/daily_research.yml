@@ -2,9 +2,9 @@ name: 7-Day B-Cell AI Research Update
 
 on:
   schedule:
-    # 每 3 天的 UTC 21:00 运行一次 (东京时间凌晨 6:00)
-    - cron: '0 21 */7 * *'
-  workflow_dispatch: # 保留手动触发按钮，方便你测试
+    # ✅ 修复一：每7天运行一次，UTC 21:00（东京时间早上6:00）
+    - cron: '0 21 1,8,15,22 * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,28 +25,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install feedparser requests beautifulsoup4
 
       - name: Run research script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        # 确保你的 Python 文件路径是 scripts/auto_research.py
         run: python scripts/auto_research.py
 
       - name: Commit and Push changes
         run: |
           git config --global user.name "BCellAI-Bot"
           git config --global user.email "bot@bcellai.com"
-          
-          # 检查文件是否生成
-          ls -R _posts/ || echo "No _posts directory yet"
-          
-          git add _posts/*.md || echo "No new posts to add"
-          
+
+          # ✅ 修复二：同时提交posts和seen_papers.json
+          git add _posts/ seen_papers.json 2>/dev/null || true
+
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Auto-update: B-Cell 3-Day Research $(date +'%Y-%m-%d')"
+            git commit -m "Auto-update: B-Cell Research $(date +'%Y-%m-%d')"
             git push origin master
           else
-            echo "No changes detected to commit."
+            echo "No changes detected, skipping commit."
           fi
