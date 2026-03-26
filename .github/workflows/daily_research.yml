@@ -36,7 +36,7 @@ jobs:
           git add raw_papers/*.txt seen_papers.json 2>/dev/null || true
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "New Research Intelligence: $(date +'%Y-%m-%d')"
-            git push origin main # 如果你的分支叫 master，请改成 master
+            git push origin master # 如果你的分支叫 master，请改成 master
           else
             echo "No changes to commit."
           fi
