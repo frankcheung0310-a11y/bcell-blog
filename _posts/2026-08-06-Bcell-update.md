@@ -1,3 +1,11 @@
+---
+layout: post
+title: "AI and B-Cell Research Roundup: August 2026"
+date: 2026-08-06
+tags: AI, Immunology, Drug-Discovery
+author: z-john
+---
+
 # Tissue-Resident Immunity and Antibody Responses to SARS-CoV-2 Vaccines
 
 ## Introduction
